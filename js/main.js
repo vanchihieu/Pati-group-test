@@ -506,3 +506,30 @@ function throttle(func, limit) {
     }
   };
 }
+
+// ========== Product FAQ Accordion ==========
+const productFaqBoxes = document.querySelectorAll(".product_faq-box");
+
+productFaqBoxes.forEach((box) => {
+  const thumb = box.querySelector(".product_faq-thumb");
+
+  if (thumb) {
+    thumb.addEventListener("click", function () {
+      const isActive = box.classList.contains("active");
+
+      // Close all other FAQ boxes
+      productFaqBoxes.forEach((otherBox) => {
+        if (otherBox !== box) {
+          otherBox.classList.remove("active");
+        }
+      });
+
+      // Toggle current box
+      if (isActive) {
+        box.classList.remove("active");
+      } else {
+        box.classList.add("active");
+      }
+    });
+  }
+});
