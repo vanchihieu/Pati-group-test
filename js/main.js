@@ -277,6 +277,209 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // ========== Utility Functions ==========
 
+// ========== Ingredients Accordion ==========
+const ingredientToggles = document.querySelectorAll(
+  ".product_lymph-ingr-thumb"
+);
+
+ingredientToggles.forEach((toggle) => {
+  toggle.addEventListener("click", function () {
+    const parent = this.parentElement;
+    const content = parent.querySelector(".product_lymph-ingr-content");
+    const arrow = this.querySelector("div:last-child img");
+    const isCurrentlyOpen = content.classList.contains("active");
+
+    // Close all other accordions first
+    ingredientToggles.forEach((otherToggle) => {
+      if (otherToggle !== this) {
+        const otherParent = otherToggle.parentElement;
+        const otherContent = otherParent.querySelector(
+          ".product_lymph-ingr-content"
+        );
+        const otherArrow = otherToggle.querySelector("div:last-child img");
+
+        otherContent.classList.remove("active");
+        otherArrow.style.transform = "rotate(0deg)";
+      }
+    });
+
+    // Toggle current accordion
+    if (isCurrentlyOpen) {
+      content.classList.remove("active");
+      arrow.style.transform = "rotate(0deg)";
+    } else {
+      content.classList.add("active");
+      arrow.style.transform = "rotate(90deg)";
+    }
+  });
+});
+
+// ========== FAQ Accordion ==========
+const faqHeaders = document.querySelectorAll(".accordion-header");
+
+faqHeaders.forEach((header) => {
+  header.addEventListener("click", function () {
+    const item = this.parentElement;
+    const isCurrentlyOpen = item.classList.contains("active");
+
+    // Close all other FAQ items
+    document.querySelectorAll(".accordion-item").forEach((otherItem) => {
+      if (otherItem !== item) {
+        otherItem.classList.remove("active");
+      }
+    });
+
+    // Toggle current item
+    if (isCurrentlyOpen) {
+      item.classList.remove("active");
+    } else {
+      item.classList.add("active");
+    }
+  });
+});
+
+// ========== Video Testimonials ==========
+const videoContainers = document.querySelectorAll(".product_ugc-video");
+
+videoContainers.forEach((container) => {
+  const video = container.querySelector("video");
+  const playBtn = container.querySelector(".product_ugc-play");
+
+  if (video && playBtn) {
+    container.addEventListener("click", function () {
+      if (video.paused) {
+        // Pause all other videos
+        document.querySelectorAll(".product_ugc-video video").forEach((v) => {
+          if (v !== video) {
+            v.pause();
+            v.currentTime = 0;
+            v
+              .closest(".product_ugc-video")
+              .querySelector(".product_ugc-play").style.display = "block";
+          }
+        });
+
+        // Play this video
+        video.play();
+        playBtn.style.display = "none";
+      } else {
+        video.pause();
+        playBtn.style.display = "block";
+      }
+    });
+
+    // Show play button when video ends
+    video.addEventListener("ended", function () {
+      playBtn.style.display = "block";
+      video.currentTime = 0;
+    });
+  }
+});
+
+// ========== Carousel Navigation ==========
+const carouselContainer = document.querySelector(".product_ugc-container");
+const prevBtn = document.querySelector(".product_carousel-prev");
+const nextBtn = document.querySelector(".product_carousel-next");
+const paginationDots = document.querySelectorAll(
+  ".product_pagination-dots .dot"
+);
+let currentIndex = 0;
+
+if (carouselContainer && prevBtn && nextBtn) {
+  const totalVideos = carouselContainer.children.length;
+  let videosPerView = getVideosPerView();
+
+  function getVideosPerView() {
+    const width = window.innerWidth;
+    if (width < 769) return 1;
+    if (width < 1025) return 3;
+    return 4;
+  }
+
+  function getMaxIndex() {
+    return Math.max(0, totalVideos - videosPerView);
+  }
+
+  let maxIndex = getMaxIndex();
+
+  // Handle window resize
+  window.addEventListener(
+    "resize",
+    debounce(() => {
+      videosPerView = getVideosPerView();
+      maxIndex = getMaxIndex();
+      currentIndex = Math.min(currentIndex, maxIndex);
+      updateCarousel();
+    }, 250)
+  );
+
+  prevBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    if (currentIndex > 0) {
+      currentIndex--;
+      updateCarousel();
+    }
+  });
+
+  nextBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    if (currentIndex < maxIndex) {
+      currentIndex++;
+      updateCarousel();
+    }
+  });
+
+  // Pagination dots click
+  paginationDots.forEach((dot, index) => {
+    dot.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (index <= maxIndex) {
+        currentIndex = index;
+        updateCarousel();
+      }
+    });
+  });
+
+  function updateCarousel() {
+    const containerWidth = carouselContainer.parentElement.offsetWidth;
+    const totalWidth = carouselContainer.scrollWidth;
+    const videoWidth = carouselContainer.children[0].offsetWidth;
+    const gap = 20;
+    const offset = currentIndex * (videoWidth + gap);
+
+    carouselContainer.style.transform = `translateX(-${offset}px)`;
+
+    // Update pagination dots
+    paginationDots.forEach((dot, index) => {
+      if (index === currentIndex) {
+        dot.classList.add("active");
+      } else {
+        dot.classList.remove("active");
+      }
+    });
+
+    // Update button states
+    if (currentIndex === 0) {
+      prevBtn.style.opacity = "0.4";
+      prevBtn.style.cursor = "not-allowed";
+    } else {
+      prevBtn.style.opacity = "1";
+      prevBtn.style.cursor = "pointer";
+    }
+
+    if (currentIndex >= maxIndex) {
+      nextBtn.style.opacity = "0.4";
+      nextBtn.style.cursor = "not-allowed";
+    } else {
+      nextBtn.style.opacity = "1";
+      nextBtn.style.cursor = "pointer";
+    }
+  }
+
+  // Initial update
+  updateCarousel();
+}
+
 // Debounce function for performance
 function debounce(func, wait) {
   let timeout;
